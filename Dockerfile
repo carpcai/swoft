@@ -78,6 +78,7 @@ RUN composer install --no-dev \
     && composer dump-autoload -o \
     && composer clearcache
 
-EXPOSE 80
+EXPOSE 18306
+EXPOSE 18307
 
 ENTRYPOINT ["php", "/var/www/swoft/bin/swoft", "http:start"]
