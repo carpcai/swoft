@@ -81,4 +81,4 @@ RUN composer install --no-dev \
 EXPOSE 18306
 EXPOSE 18307
 
-ENTRYPOINT ["php", "/var/www/swoft/bin/swoft", "http:start"]
+#ENTRYPOINT ["php", "/var/www/swoft/bin/swoft", "http:start"]
