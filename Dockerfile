@@ -1,18 +1,18 @@
-FROM php:7.3
+FROM php:7.2
 
-MAINTAINER carpcai <h@swoft.org>
+LABEL maintainer="inhere <in.798@qq.com>" version="2.0"
 
 # Version
-ENV PHPREDIS_VERSION 4.3.0
-ENV HIREDIS_VERSION 0.14.0
-ENV SWOOLE_VERSION 4.3.4
+ENV PHPREDIS_VERSION=4.3.0 \
+    SWOOLE_VERSION=4.3.5
+
+ADD . /var/www/swoft
 
 # Timezone
 RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && echo 'Asia/Shanghai' > /etc/timezone
-
+    && echo 'Asia/Shanghai' > /etc/timezone \
 # Libs
-RUN apt-get update \
+    && apt-get update \
     && apt-get install -y \
         curl \
         wget \
@@ -23,62 +23,44 @@ RUN apt-get update \
         libnghttp2-dev \
         libpcre3-dev \
     && apt-get clean \
-    && apt-get autoremove
-
-# Composer
-RUN curl -sS https://getcomposer.org/installer | php \
+    && apt-get autoremove \
+# Install composer
+    && curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer \
-    && composer self-update --clean-backups
-
-# PDO extension
-RUN docker-php-ext-install pdo_mysql
-
-# Bcmath extension
-RUN docker-php-ext-install bcmath
-
+    && composer self-update --clean-backups \
+# Some php extension
+    && docker-php-ext-install pdo_mysql \
+       bcmath \
+       sockets \
+       zip \
+       sysvmsg \
+       sysvsem \
+       sysvshm \
 # Redis extension
-RUN wget http://pecl.php.net/get/redis-${PHPREDIS_VERSION}.tgz -O /tmp/redis.tar.tgz \
+    && wget http://pecl.php.net/get/redis-${PHPREDIS_VERSION}.tgz -O /tmp/redis.tar.tgz \
     && pecl install /tmp/redis.tar.tgz \
     && rm -rf /tmp/redis.tar.tgz \
-    && docker-php-ext-enable redis
-
-# Hiredis
-RUN wget https://github.com/redis/hiredis/archive/v${HIREDIS_VERSION}.tar.gz -O hiredis.tar.gz \
-    && mkdir -p hiredis \
-    && tar -xf hiredis.tar.gz -C hiredis --strip-components=1 \
-    && rm hiredis.tar.gz \
-    && ( \
-        cd hiredis \
-        && make -j$(nproc) \
-        && make install \
-        && ldconfig \
-    ) \
-    && rm -r hiredis
-
+    && docker-php-ext-enable redis \
 # Swoole extension
-RUN wget https://github.com/swoole/swoole-src/archive/v${SWOOLE_VERSION}.tar.gz -O swoole.tar.gz \
+    && wget https://github.com/swoole/swoole-src/archive/v${SWOOLE_VERSION}.tar.gz -O swoole.tar.gz \
     && mkdir -p swoole \
     && tar -xf swoole.tar.gz -C swoole --strip-components=1 \
     && rm swoole.tar.gz \
     && ( \
         cd swoole \
         && phpize \
-        && ./configure --enable-async-redis --enable-mysqlnd --enable-openssl --enable-http2 \
+        && ./configure --enable-mysqlnd --enable-sockets --enable-openssl --enable-http2 \
         && make -j$(nproc) \
         && make install \
     ) \
     && rm -r swoole \
-    && docker-php-ext-enable swoole
-
-ADD . /var/www/swoft
-
-WORKDIR /var/www/swoft
-
-RUN composer install --no-dev \
-    && composer dump-autoload -o \
+    && docker-php-ext-enable swoole \
+# Install composer deps
+    && cd /var/www/swoft \
+    && composer install \
     && composer clearcache
 
-EXPOSE 18306
-EXPOSE 18307
+WORKDIR /var/www/swoft
+EXPOSE 18306 18307 18308
 
 #ENTRYPOINT ["php", "/var/www/swoft/bin/swoft", "http:start"]
