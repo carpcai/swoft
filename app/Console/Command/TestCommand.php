@@ -37,8 +37,9 @@ class TestCommand
         }
 
         foreach ($exeUris as $uri) {
-            $abShell   = sprintf('ab -n 10000 -c 2000  127.0.0.1:18306%s', $uri);
-            $curlShell = sprintf('curl 127.0.0.1:18306%s', $uri);
+            $curlResult = null;
+            $abShell    = sprintf('ab -k -n 10000 -c 2000  127.0.0.1:18306%s', $uri);
+            $curlShell  = sprintf('curl 127.0.0.1:18306%s', $uri);
 
             exec($curlShell, $curlResult);
             output()->writeln('执行结果:' . json_encode($curlResult));
@@ -59,6 +60,7 @@ class TestCommand
                 '/redis/et',
                 '/redis/ep',
                 '/redis/release',
+                '/redis/poolSet',
             ],
             'log'   => [
                 '/log/test'
@@ -70,10 +72,18 @@ class TestCommand
                 '/dbTransaction/ts2',
                 '/dbTransaction/cm2',
                 '/dbTransaction/rl2',
+                '/dbTransaction/multiPool',
                 '/dbModel/find',
                 '/dbModel/update',
                 '/dbModel/delete',
                 '/dbModel/save',
+                '/selectDb/modelNotExistDb',
+                '/selectDb/queryNotExistDb',
+                '/selectDb/dbNotExistDb',
+                '/selectDb/modelDb',
+                '/selectDb/queryDb',
+                '/selectDb/dbDb',
+                '/selectDb/select'
             ],
             'task'  => [
                 '/task/getListByCo',
@@ -85,11 +95,12 @@ class TestCommand
                 '/rpc/getList',
                 '/rpc/returnBool',
                 '/rpc/bigString',
+                '/rpc/sendBigString'
             ],
             'co'    => [
                 '/co/multi'
             ],
-            'bean' => [
+            'bean'  => [
                 '/bean/request'
             ]
         ];

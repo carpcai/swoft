@@ -1,5 +1,7 @@
 <?php
 
+use App\Common\DbSelector;
+use Swoft\Db\Pool;
 use Swoft\Http\Server\HttpServer;
 use Swoft\Task\Swoole\TaskListener;
 use Swoft\Task\Swoole\FinishListener;
@@ -34,11 +36,39 @@ return [
             'task_enable_coroutine' => true
         ]
     ],
+    'httpDispatcher' => [
+        // Add global http middleware
+        'middlewares' => [
+            // Allow use @View tag
+            \Swoft\View\Middleware\ViewMiddleware::class,
+        ],
+    ],
     'db'         => [
         'class'    => Database::class,
         'dsn'      => 'mysql:dbname=test;host=172.17.0.3',
         'username' => 'root',
         'password' => 'swoft123456',
+    ],
+    'db2'        => [
+        'class'      => Database::class,
+        'dsn'        => 'mysql:dbname=test2;host=172.17.0.3',
+        'username'   => 'root',
+        'password'   => 'swoft123456',
+        'dbSelector' => bean(DbSelector::class)
+    ],
+    'db2.pool'   => [
+        'class'    => Pool::class,
+        'database' => bean('db2')
+    ],
+    'db3'        => [
+        'class'    => Database::class,
+        'dsn'      => 'mysql:dbname=test2;host=172.17.0.3',
+        'username' => 'root',
+        'password' => 'swoft123456'
+    ],
+    'db3.pool'   => [
+        'class'    => Pool::class,
+        'database' => bean('db3')
     ],
     'redis'      => [
         'class'    => RedisDb::class,
@@ -71,7 +101,7 @@ return [
             // Enable http handle
             SwooleEvent::REQUEST => bean(RequestListener::class),
         ],
-        'debug' => env('SWOFT_DEBUG', 0),
+        'debug'   => env('SWOFT_DEBUG', 0),
         /* @see WebSocketServer::$setting */
         'setting' => [
             'log_file' => alias('@runtime/swoole.log'),
